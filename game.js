@@ -1,0 +1,167 @@
+let game;
+let whichBat;
+let gameOptions = {
+
+    // water level, in % of screen height
+    waterLevel: 50,
+
+    // ball gravity
+    ballGravity: 1600,
+
+    // jump power
+    ballPower: 800,
+
+    //bat position
+    batPositionTop : 0,
+    batPositionBottom : 98
+}
+window.onload = function() {
+    let gameConfig = {
+        type: Phaser.AUTO,
+        backgroundColor:0x888888,
+        scale: {
+            mode: Phaser.Scale.FIT,
+            autoCenter: Phaser.Scale.CENTER_BOTH,
+            parent: "thegame",
+            width: 750,
+            height: 1334,
+            
+        },
+        physics: {
+            default: "arcade",
+            arcade: {
+                gravity: {
+                    y: 0
+                }
+            }
+        },
+        scene: playGame
+    }
+    game = new Phaser.Game(gameConfig);
+    window.focus();
+}
+class playGame extends Phaser.Scene{
+    constructor(){
+        super("PlayGame");
+    }
+    preload(){
+        this.load.image("bat", "johnny_automatic_baseball_bat.png");
+        this.load.image("ball", "Soccerball.png");
+        this.load.image("water", "water.png");
+    }
+    create(){
+
+        // add water sprite
+        this.batTop = this.add.image(300,19, "bat");
+        this.water = this.add.sprite(0, game.config.height / 100 * gameOptions.waterLevel, "water");
+        this.batBottom = this.add.image(300,game.config.height / 100 * gameOptions.batPositionBottom, "bat");
+
+        // set registration point to top left pixel
+        this.water.setOrigin(0, 0);
+       
+        
+        // set display width to cover the entire game width
+        this.water.displayWidth = game.config.width;
+
+        // set display height to cover from water level to the bottom of the canvas
+        this.water.displayHeight = game.config.height - this.water.y;
+        
+        // add ball sprite
+        this.ball = this.physics.add.sprite(game.config.width / 2, game.config.height / 4, "ball");
+
+        // set ball ballGravity
+        this.ball.body.gravity.y = gameOptions.ballGravity * (this.isUnderwater() ? -1 : 1)
+        // this.ball.body.gravity.y = gameOptions.ballGravity * (this.isHitBottomBat() ? -2 : 1)
+        // this.ball.body.gravity.y = gameOptions.ballGravity * (this.isHitTopBat() ? -1 : 2)
+
+        // listener for input, calls "jump" method
+        this.input.on("pointerdown", this.jump, this);
+    }
+
+    // method to make ball jump
+    jump(){
+
+        //set ball velocity to positive or negative jump speed according to ball position
+    //    if (this.ball.y = game.config.height / 100 * gameOptions.batPositionBottom) {
+
+    //        this.ball.body.gravity.y = gameOptions.ballGravity * ( -2);
+    //    }
+
+    //    if (this.ball.y = 20 )  {
+    //     this.ball.body.gravity.y = gameOptions.ballGravity * ( 2);
+    //    }
+
+        this.ball.body.velocity.y = gameOptions.ballPower * (this.isUnderwater() ? 1 : -1);
+         
+    }
+
+    // method to check if the ball is underwater
+    isUnderwater(){
+
+        // true if ball y position is higher than water level
+        return this.ball.y > game.config.height / 100 * gameOptions.waterLevel;
+    }
+    // isTopHit(){
+    //     return this.ball.y >= 20 ;
+    // }
+   
+    // isBottomHit(){
+    //     return this.ball.y <= game.config.height / 100 * gameOptions.batPositionBottom ;
+    // }
+   
+
+    update(){
+
+      // determine next ball gravity
+       
+        
+    // if (this.ball.body.y >= 20) {
+    //     this.ball.body.velocity.y = gameOptions.ballPower * 2
+        
+    // } 
+      if (this.ball.y <= 20 || this.ball.y >= 1307.32 ) {
+          
+        if (this.ball.y <= 20) {
+            whichBat = "top" ;
+        }
+        else{
+            whichBat = "bottom";
+        }
+
+     gameOptions.ballGravity = 3600 * 2;
+        gameOptions.ballPower = 0;
+        // console.log(game.config.height / 100 * gameOptions.batPositionBottom);
+      }
+      
+
+        if (this.isUnderwater() && whichBat == "top") {
+            whichBat = " ";
+            gameOptions.ballPower = 800 ;
+            gameOptions.ballGravity = 1600 ;
+            
+        }
+        if (!this.isUnderwater() && whichBat == "bottom") {
+            whichBat = " ";
+            gameOptions.ballPower = 800 ;
+            gameOptions.ballGravity = 1600 ;
+            
+        }
+
+        let nextGravity = gameOptions.ballGravity * (this.isUnderwater() ? -1 : 1);
+        
+        
+        if(nextGravity != this.ball.body.gravity.y){
+            
+            // set ball ballGravity
+            this.ball.body.gravity.y = nextGravity;
+           
+            // set ball velocity as if we just jumped
+           this.ball.body.velocity.y = gameOptions.ballPower * (this.isUnderwater() ? 1 : -1);
+            
+           
+      }
+      
+      
+    }
+    
+}
